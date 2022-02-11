@@ -15,27 +15,31 @@ components:
       memoryLimit: 512Mi ## default app nowhere needs this but leaving room for expansion.
       mountSources: true
       volumeMounts:
-        - name: m2
-          path: /home/user/.m2
-      endpoints:
-        - name: '8080-http'
-          targetPort: 8080
-      env:
-        - name: MAVEN_MIRROR_URL
-          value: 'https://maven.repository.redhat.com/ga'
-  - name: m2
+        - name: mvnrepo
+          path: /home/jboss/.m2/repository
+    endpoints:
+    - name: http-8778
+      targetPort: 8778
+    - name: http-8080
+      targetPort: 8080
+    - name: http-8443
+      targetPort: 8443
+    env:
+      - name: PROJECTS_ROOT
+        value: '/tmp/src'
+  - name: mvnrepo
     volume:
       size: 1Gi
 commands:
   - id: init-compile
     exec:
       component: tools
-      commandLine: 'mvn -Dmaven.repo.local=/home/user/.m2/repository compile'
+      commandLine: '/usr/local/s2i/assemble'
       workingDir: $PROJECTS_ROOT
   - id: dev-run
     exec:
       component: tools
-      commandLine: 'mvn -Dmaven.repo.local=/home/user/.m2/repository spring-boot:run'
+      commandLine: '/usr/local/s2i/run'
       hotReloadCapable: true
       group:
         kind: run
@@ -44,8 +48,13 @@ commands:
   - id: dev-debug
     exec:
       component: tools
-      commandLine: 'mvn -Dmaven.repo.local=/home/user/.m2/repository spring-boot:run -Dspring-boot.run.jvmArguments="-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=${DEBUG_PORT}"'
+      commandLine: '/usr/local/s2i/run'
       hotReloadCapable: true
+      env:
+        - name: JAVA_DEBUG
+          value: 'true'
+        - name: JAVA_DEBUG_PORT
+          value: ${DEBUG_PORT}
       group:
         kind: debug
         isDefault: true
