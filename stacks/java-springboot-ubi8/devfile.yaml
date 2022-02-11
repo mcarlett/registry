@@ -20,6 +20,9 @@ components:
       endpoints:
         - name: '8080-http'
           targetPort: 8080
+      env:
+        - name: MAVEN_MIRROR_URL
+          value: 'https://maven.repository.redhat.com/ga'
   - name: m2
     volume:
       size: 1Gi
