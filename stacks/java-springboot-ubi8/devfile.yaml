@@ -12,21 +12,17 @@ components:
   - name: tools
     container:
       image: registry.access.redhat.com/ubi8/openjdk-11
-      memoryLimit: 512Mi ## default app nowhere needs this but leaving room for expansion.
       mountSources: true
       volumeMounts:
         - name: mvnrepo
           path: /home/jboss/.m2/repository
-    endpoints:
-    - name: http-8778
-      targetPort: 8778
-    - name: http-8080
-      targetPort: 8080
-    - name: http-8443
-      targetPort: 8443
-    env:
-      - name: PROJECTS_ROOT
-        value: '/tmp/src'
+      endpoints:
+      - name: http-8778
+        targetPort: 8778
+      - name: http-8080
+        targetPort: 8080
+      - name: http-8443
+        targetPort: 8443
   - name: mvnrepo
     volume:
       size: 1Gi
@@ -34,8 +30,8 @@ commands:
   - id: init-compile
     exec:
       component: tools
-      commandLine: '/usr/local/s2i/assemble'
-      workingDir: $PROJECTS_ROOT
+      commandLine: 'source /opt/jboss/container/maven/default/maven.sh && maven_init && mvn -s /home/jboss/.m2/settings.xml package && cp ${PROJECT_SOURCE}/target/*.jar /deployments'
+      workingDir: $PROJECT_SOURCE
   - id: dev-run
     exec:
       component: tools
