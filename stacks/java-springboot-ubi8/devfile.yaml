@@ -1,0 +1,52 @@
+schemaVersion: 2.0.0
+metadata:
+  name: java-springboot-ubi8
+  version: 0.0.1
+  displayName: Spring Boot® Java ubi8
+  description: Spring Boot® with Java and ubi8 image
+  icon: https://raw.githubusercontent.com/devfile-samples/devfile-stack-icons/main/java-maven.jpg
+  tags: ['Java', 'Spring']
+  projectType: 'spring'
+  language: 'java'
+components:
+  - name: tools
+    container:
+      image: registry.access.redhat.com/ubi8/openjdk-11
+      memoryLimit: 512Mi ## default app nowhere needs this but leaving room for expansion.
+      mountSources: true
+      volumeMounts:
+        - name: m2
+          path: /home/user/.m2
+      endpoints:
+        - name: '8080-http'
+          targetPort: 8080
+  - name: m2
+    volume:
+      size: 1Gi
+commands:
+  - id: init-compile
+    exec:
+      component: tools
+      commandLine: 'mvn -Dmaven.repo.local=/home/user/.m2/repository compile'
+      workingDir: $PROJECTS_ROOT
+  - id: dev-run
+    exec:
+      component: tools
+      commandLine: 'mvn -Dmaven.repo.local=/home/user/.m2/repository spring-boot:run'
+      hotReloadCapable: true
+      group:
+        kind: run
+        isDefault: true
+      workingDir: $PROJECTS_ROOT
+  - id: dev-debug
+    exec:
+      component: tools
+      commandLine: 'mvn -Dmaven.repo.local=/home/user/.m2/repository spring-boot:run -Dspring-boot.run.jvmArguments="-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=${DEBUG_PORT}"'
+      hotReloadCapable: true
+      group:
+        kind: debug
+        isDefault: true
+      workingDir: $PROJECTS_ROOT
+events:
+  postStart:
+    - init-compile
