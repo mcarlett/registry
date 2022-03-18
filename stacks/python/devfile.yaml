@@ -12,7 +12,7 @@ starterProjects:
   - name: python-example
     git:
       remotes:
-        origin: https://github.com/odo-devfiles/python-ex
+        origin: https://github.com/devfile-samples/python-ex
 components:
   - name: py-web
     container:
@@ -21,10 +21,14 @@ components:
       endpoints:
         - name: web
           targetPort: 8080
+      env:
+        - name: DEBUG_PORT
+          value: "5858"
 commands:
   - id: pip-install-requirements
     exec:
       commandLine: pip install --user -r requirements.txt
+      workingDir: ${PROJECT_SOURCE}
       group:
         kind: build
         isDefault: true
@@ -32,7 +36,7 @@ commands:
   - id: run-app
     exec:
       commandLine: 'python app.py'
-      workingDir: ${PROJECTS_ROOT}
+      workingDir: ${PROJECT_SOURCE}
       component: py-web
       group:
         kind: run
@@ -40,7 +44,7 @@ commands:
   - id: debugpy
     exec:
       commandLine: 'pip install --user debugpy && python -m debugpy --listen 0.0.0.0:${DEBUG_PORT} app.py'
-      workingDir: ${PROJECTS_ROOT}
+      workingDir: ${PROJECT_SOURCE}
       component: py-web
       group:
         kind: debug

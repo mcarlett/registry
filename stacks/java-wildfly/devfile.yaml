@@ -108,6 +108,8 @@ components:
           value: '/projects/wildfly'
         - name: MVN_ARGS_APPEND
           value: '-s /home/jboss/.m2/settings.xml -Dmaven.repo.local=/home/jboss/.m2/repository -Dcom.redhat.xpaas.repo.jbossorg'
+        - name: DEBUG_PORT
+          value: "5858"
       endpoints:
         - name: 'wildfly-http'
           targetPort: 8080
@@ -137,7 +139,7 @@ commands:
       label: Compile and package the application
       component: wildfly
       commandLine: source ${JBOSS_CONTAINER_MAVEN_DEFAULT_MODULE}/scl-enable-maven && mvn ${MVN_ARGS_APPEND} -Dmaven.test.skip=true clean package
-      workingDir: $PROJECTS_ROOT
+      workingDir: ${PROJECT_SOURCE}
       group:
         kind: build
         isDefault: false
@@ -146,7 +148,7 @@ commands:
       label: Copy application artifact
       component: wildfly
       commandLine: cp target/*.war $JBOSS_HOME/standalone/deployments/ROOT.war
-      workingDir: $PROJECTS_ROOT
+      workingDir: ${PROJECT_SOURCE}
       group:
         kind: build
         isDefault: false
@@ -155,7 +157,7 @@ commands:
       label: Launch WildFly Server
       component: wildfly
       commandLine: cp -f $STANDALONE_RESTORE/standalone.xml $JBOSS_HOME/standalone/configuration/standalone.xml && $JBOSS_HOME/bin/openshift-launch.sh
-      workingDir: $PROJECTS_ROOT
+      workingDir: ${PROJECT_SOURCE}
       hotReloadCapable: true
       group:
         kind: run
@@ -165,7 +167,7 @@ commands:
       label: Launch WildFly Server with debug enabled
       component: wildfly
       commandLine: cp -f $STANDALONE_RESTORE/standalone.xml $JBOSS_HOME/standalone/configuration/standalone.xml&& $JBOSS_HOME/bin/openshift-launch.sh
-      workingDir: $PROJECTS_ROOT
+      workingDir: ${PROJECT_SOURCE}
       hotReloadCapable: true
       env:
         - name: JAVA_OPTS_APPEND
@@ -178,7 +180,7 @@ commands:
     exec:
       component: wildfly
       commandLine: cp -Rf /opt/jboss/container/wildfly/s2i/galleon/galleon-m2-repository /tmp/. && cp -Rf /opt/wildfly /tmp/.
-      workingDir: $PROJECTS_ROOT
+      workingDir: ${PROJECT_SOURCE}
       group:
         kind: build
         isDefault: false
@@ -186,7 +188,7 @@ commands:
     exec:
       component: wildfly
       commandLine: cp ${JBOSS_CONTAINER_MAVEN_DEFAULT_MODULE}/jboss-settings.xml /tmp/settings.xml
-      workingDir: $PROJECTS_ROOT
+      workingDir: ${PROJECT_SOURCE}
       group:
         kind: build
         isDefault: false
@@ -194,7 +196,7 @@ commands:
     exec:
       component: wildfly
       commandLine: /usr/local/s2i/assemble && cp -Rf $JBOSS_HOME .
-      workingDir: $PROJECTS_ROOT
+      workingDir: ${PROJECT_SOURCE}
       env:
         - name: JBOSS_HOME
           value: '/tmp/wildfly'
@@ -205,7 +207,7 @@ commands:
     exec:
       component: wildfly
       commandLine: mkdir $STANDALONE_RESTORE && cp -f $JBOSS_HOME/standalone/configuration/standalone.xml $STANDALONE_RESTORE/standalone.xml
-      workingDir: $PROJECTS_ROOT
+      workingDir: ${PROJECT_SOURCE}
       env:
         - name: JBOSS_HOME
           value: '/tmp/wildfly'
